@@ -17,6 +17,9 @@ COPY . .
 # Install project dependencies into a local venv
 RUN uv sync --no-dev
 
+# IMPORTANT: force FastMCP version with JWT token verification support
+RUN uv pip install --python /app/.venv/bin/python "fastmcp[cli]>=2.12.1"
+
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -28,4 +31,5 @@ COPY --from=builder /app/src /app/src
 
 EXPOSE 9001
 
-CMD ["python", "src/server.py", "--host", "0.0.0.0", "--transport", "sse"]
+# Use HTTP transport with explicit path (better behind Dokploy/Traefik)
+CMD ["python", "src/server.py", "--host", "0.0.0.0", "--port", "9001", "--transport", "http", "--path", "/mcp"]
